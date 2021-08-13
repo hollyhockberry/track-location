@@ -8,10 +8,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from database.db import Base, engine
 from user.router import router as users
 from location.router import router as locations
+from search.router import router as search
 
 Base.metadata.create_all(engine)
 
 tags_metadata = [
+  {
+    'name': 'search',
+    'description': 'APIs to get the last location.',
+  },
   {
     'name': 'users',
     'description': 'CRUD Interfaces for database of users.',
@@ -43,6 +48,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(search, prefix='/api/search')
 app.include_router(users, prefix='/api/user')
 app.include_router(locations, prefix='/api/location')
 
