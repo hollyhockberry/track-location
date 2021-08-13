@@ -28,6 +28,12 @@ def read(db: Session, id: str):
   return db.query(model.User).filter(model.User.id == id).first()
 
 
+def read_by_description(db: Session, description: str):
+  return db.query(model.User)\
+    .filter(model.User.description == description)\
+    .all()
+
+
 def update(db: Session, id: str, data: schemas.UserUpdate):
   item = db.query(model.User).get(id)
   if item is None:

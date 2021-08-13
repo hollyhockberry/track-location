@@ -26,6 +26,16 @@ async def read(id: str, db: Session = Depends(get_db)):
   return user
 
 
+@router.post('/',
+  summary='Read records with the same description',
+  response_model=List[schemas.User])
+async def read_by_description(data: schemas.UserRead, db: Session = Depends(get_db)):
+  user = crud.read_by_description(db, data.description)
+  if user is None:
+    raise HTTPException(status_code = 404)
+  return user
+
+
 @router.post('/{id}',status_code=204,responses={400: {}})
 async def create(id: str, data: schemas.UserCreate, db: Session = Depends(get_db)):
   try:
