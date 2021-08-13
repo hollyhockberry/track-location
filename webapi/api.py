@@ -4,6 +4,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from database.db import Base, engine
 from user.router import router as users
@@ -51,6 +52,8 @@ app.add_middleware(
 app.include_router(search, prefix='/api/search')
 app.include_router(users, prefix='/api/user')
 app.include_router(locations, prefix='/api/location')
+
+app.mount("/api/sample", StaticFiles(directory="sample", html=True), name="spa")
 
 if __name__ == "__main__":
   import uvicorn

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Search</title>
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap@4.5.3/dist/css/bootstrap.min.css" >
+    <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.21.2/dist/bootstrap-vue.min.css" >
+    <style>
+      .nav-items {
+        opacity: 0.6;
+      }
+      .nav-items:hover {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <b-overlay :show="error != null"
+        opacity="0.6" blur="5em" variant="danger">
+        <b-navbar type="dark" variant="info">
+          <b-navbar-brand href="#" @click="search">
+            <span>
+              <b-icon icon="search" class="border rounded p-1"/>
+            </span>
+            <span class="nav-items">Search</span>
+          </span>
+          </b-navbar-brand>
+      
+          <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
+          <b-collapse id="nav-collapse" is-nav>
+            <b-nav-form class="mr-2">
+              <b-form-select v-model="period" :options="periods" @input="chenged_value" size="sm">
+              </b-form-select>
+            </b-nav-form>
+
+            <b-button-toolbar>
+              <b-button-group size="sm" class="mx-1">
+                <b-button @click="select_all">
+                  <b-icon icon="flag-fill" :class="{ 'text-info': mode != 1 }"/> 
+                </b-button>
+
+                <b-button @click="select_user">
+                  <b-icon icon="person-fill" :class="{ 'text-info': mode != 2 }"/>                
+                </b-button>
+                <div v-if="mode == 2" class="mx-2">
+                  <b-form-select v-model="user" @input="chenged_value" size="sm">
+                    <option disabled value="null">Select user</option>
+                    <option v-for="u in users" v-bind:value="u.id">
+                      {{ u.name }}
+                    </option>
+                  </b-form-select>
+                </div>
+
+                <b-button @click="select_descripton">
+                  <b-icon icon="card-heading" :class="{ 'text-info': mode != 3 }"/>                
+                </b-button>
+                <div v-if="mode == 3" class="mx-2">
+                  <b-form-input
+                    v-model="description"
+                    @keypress.enter="chenged_value"
+                    placeholder="description" size="sm">
+                </div>
+
+                <b-button @click="select_location">
+                  <b-icon icon="geo-fill" :class="{ 'text-info': mode != 4 }"/>                
+                </b-button>
+                <div v-if="mode == 4" class="mx-2">
+                  <b-form-select v-model="location" @input="chenged_value" size="sm">
+                    <option disabled value="null">Select location</option>
+                    <option v-for="l in locations" v-bind:value="l.id">
+                      {{ l.location }}
+                    </option>
+                  </b-form-select>
+                </div>
+              </b-button-group>
+            </b-button-toolbar>
+
+            <b-navbar-nav class="ml-auto">
+              <span class="mx-2">
+                <b-icon @click="show_users" icon="people-fill" class="nav-items" variant="light"/>
+              </span>
+              <span class="mx-2">
+                <b-icon @click="show_locations" icon="geo-fill" class="nav-items" variant="light"/>
+              </span>
+              <span class="mx-2">
+                <a :href="url + '/docs'">
+                  <b-icon icon="book" class="nav-items" variant="light"/>
+                </a>
+              </span>
+            </b-navbar-nav>
+
+          </b-collapse>
+        </b-navbar>
+          
+        <div>
+            <b-table :items="result" :fields="fields" striped hover small />
+        </div>
+
+        <template #overlay>
+          <div class="text-center">
+            {{ error }}
+          </div>
+        </template>      
+    </b-overlay>      
+  </div>
+    <script src="https://unpkg.com/vue@2.6.12/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/axios@0.21.1/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-vue@2.21.2/dist/bootstrap-vue.min.js"></script>
+    <script src="//unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue-icons.min.js"></script>
+    <script type="text/javascript" src="./main.js"></script>
+  </body>
+</html>

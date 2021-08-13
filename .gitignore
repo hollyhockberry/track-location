@@ -5,3 +5,4 @@ db.sqlite3
 bin
 obj
 /winapp/ConsoleApp/Properties/launchSettings.json
+webapi/sample/settings.json
