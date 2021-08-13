@@ -1,3 +1,7 @@
 __pycache__
 .vscode/settings.json
 db.sqlite3
+.vs
+bin
+obj
+/winapp/ConsoleApp/Properties/launchSettings.json
