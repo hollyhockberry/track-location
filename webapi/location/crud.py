@@ -40,6 +40,14 @@ def read(db: Session, id: int):
   return db.query(model.Location).filter(model.Location.id == id).first()
 
 
+def read_by_uuids(db: Session, uuid: str, major: int, minor: int):
+  return db.query(model.Location)\
+    .filter(model.Location.uuid == uuid)\
+    .filter(model.Location.major == major)\
+    .filter(model.Location.minor == minor)\
+    .first()
+
+
 def update(db: Session, id: int, data: schemas.LocationUpdate):
   item = db.query(model.Location).get(id)
   if item is None:
