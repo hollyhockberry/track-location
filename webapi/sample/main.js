@@ -164,5 +164,20 @@ var app = new Vue({
         })
         .catch(error => this.error = error)
     },
+    show_beacons: function() {
+      axios
+        .get(`${this.url}/beacon/`)
+        .then(response => {
+          this.locations = response.data
+          this.fields = [
+            { key: 'userid', label: 'ID', sortable: true },
+            { key: 'uuid', label: 'UUID', sortable: true },
+            { key: 'major', label: 'Major', sortable: true },
+            { key: 'minor', label: 'Minor', sortable: true },
+          ]
+          this.result = this.locations
+        })
+        .catch(error => this.error = error)
+    },
   }
 });
