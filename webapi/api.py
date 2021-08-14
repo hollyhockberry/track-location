@@ -10,6 +10,7 @@ from database.db import Base, engine
 from user.router import router as users
 from location.router import router as locations
 from search.router import router as search
+from beacon.router import router as beacons
 
 Base.metadata.create_all(engine)
 
@@ -25,7 +26,11 @@ tags_metadata = [
   {
     'name': 'locations',
     'description': 'CRUD Interfaces for database of location identificator.',
-  }
+  },
+  {
+    'name': 'beacons',
+    'description': 'CRUD Interfaces for database of beacons.',
+  },
 ]
 
 app = FastAPI(
@@ -52,6 +57,7 @@ app.add_middleware(
 app.include_router(search, prefix='/api/search')
 app.include_router(users, prefix='/api/user')
 app.include_router(locations, prefix='/api/location')
+app.include_router(beacons, prefix='/api/beacon')
 
 app.mount("/api/sample", StaticFiles(directory="sample", html=True), name="spa")
 
