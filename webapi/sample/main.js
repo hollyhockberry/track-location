@@ -8,7 +8,9 @@ function convert(d) {
           + ':' + ('0' + date.getMinutes()).slice(-2)
           + ':' + ('0' + date.getSeconds()).slice(-2)
       };
-  d.time = formattedDate(new Date(d.time))
+  if (d.time != null) {
+    d.time = formattedDate(new Date(d.time))
+  }
   return d
 }
 
@@ -105,7 +107,7 @@ var app = new Vue({
               ? r
               : { name: user.name, location: null, time: null }
           })
-          this.result = convert(x)
+          this.result = listed(x)
         })
         .catch(error => {
           this.result = []
@@ -114,7 +116,7 @@ var app = new Vue({
     search_location: function() {
       axios
         .get(`${this.url}/search/bylocation/${this.location}?period=${this.period}`)
-        .then(response => this.result = convert(response.data))
+        .then(response => this.result = listed(response.data))
         .catch(error => {
           this.result = []
         })
