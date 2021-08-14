@@ -37,13 +37,15 @@
 
             <b-button-toolbar>
               <b-button-group size="sm" class="mx-1">
-                <b-button @click="select_all">
-                  <b-icon icon="flag-fill" :class="{ 'text-info': mode != 1 }"/> 
+                <b-button id="search-all" @click="select_all">
+                  <b-icon icon="people-fill" :class="{ 'text-info': mode != 1 }"/> 
                 </b-button>
+                <b-tooltip target="search-all" triggers="hover">All</b-tooltip>
 
-                <b-button @click="select_user">
+                <b-button id="search-one" @click="select_user">
                   <b-icon icon="person-fill" :class="{ 'text-info': mode != 2 }"/>                
                 </b-button>
+                <b-tooltip target="search-one" triggers="hover">User</b-tooltip>
                 <div v-if="mode == 2" class="mx-2">
                   <b-form-select v-model="user" @input="chenged_value" size="sm">
                     <option disabled value="null">Select user</option>
@@ -53,9 +55,10 @@
                   </b-form-select>
                 </div>
 
-                <b-button @click="select_descripton">
+                <b-button id="search-desc" @click="select_descripton">
                   <b-icon icon="card-heading" :class="{ 'text-info': mode != 3 }"/>                
                 </b-button>
+                <b-tooltip target="search-desc" triggers="hover">Desctiption</b-tooltip>
                 <div v-if="mode == 3" class="mx-2">
                   <b-form-input
                     v-model="description"
@@ -63,9 +66,10 @@
                     placeholder="description" size="sm">
                 </div>
 
-                <b-button @click="select_location">
+                <b-button id="search-location" @click="select_location">
                   <b-icon icon="geo-fill" :class="{ 'text-info': mode != 4 }"/>                
                 </b-button>
+                <b-tooltip target="search-location" triggers="hover">Desctiption</b-tooltip>
                 <div v-if="mode == 4" class="mx-2">
                   <b-form-select v-model="location" @input="chenged_value" size="sm">
                     <option disabled value="null">Select location</option>
@@ -78,20 +82,24 @@
             </b-button-toolbar>
 
             <b-navbar-nav class="ml-auto">
-              <span class="mx-2">
+              <span class="mx-2" id="users">
                 <b-icon @click="show_users" icon="people-fill" class="nav-items" variant="light"/>
               </span>
-              <span class="mx-2">
+              <b-tooltip target="users" triggers="hover">Users</b-tooltip>
+              <span class="mx-2" id="locations">
                 <b-icon @click="show_locations" icon="geo-fill" class="nav-items" variant="light"/>
               </span>
-              <span class="mx-2">
-                <b-icon @click="show_beacons" icon="cone-striped" class="nav-items" variant="light"/>
+              <b-tooltip target="locations" triggers="hover">Locations</b-tooltip>
+              <span class="mx-2" id="beacons">
+                <b-icon @click="show_beacons" icon="broadcast-pin" class="nav-items" variant="light"/>
               </span>
-              <span class="mx-2">
+              <b-tooltip target="beacons" triggers="hover">Beacons</b-tooltip>
+              <span class="mx-2" id="reference">
                 <a :href="url + '/docs'">
                   <b-icon icon="book" class="nav-items" variant="light"/>
                 </a>
               </span>
+              <b-tooltip target="reference" triggers="hover">API Reference</b-tooltip>
             </b-navbar-nav>
 
           </b-collapse>
