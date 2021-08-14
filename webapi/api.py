@@ -35,7 +35,7 @@ tags_metadata = [
 
 app = FastAPI(
   title='Tracker Backend',
-  version='0.0.1',
+  version='0.0.2',
   license_info={
       'name': 'MIT License',
       'url': 'http://opensource.org/licenses/mit-license.php'
