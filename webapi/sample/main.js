@@ -51,6 +51,7 @@ var app = new Vue({
         axios
           .get(`${this.url}/location/`)
           .then(response => (this.locations = response.data))
+        this.search()
       })
       .catch(error => this.error = error)
   },
