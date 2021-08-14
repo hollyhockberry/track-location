@@ -43,12 +43,12 @@ namespace ConsoleApp
             {
                 Console.WriteLine($"{e.Timestamp}: {e.Location} RSSI({e.RSSI})");
             };
-            
+
             if (!await watcher.SetUser(apiUrl, userID)) {
                 throw new Exception();
             }
 
-            await watcher.UpdateLocations(apiUrl);
+            await watcher.UpdateBeacons(apiUrl);
             await watcher.Begin(null);
         }
     }

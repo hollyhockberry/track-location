@@ -21,7 +21,6 @@ namespace BeaconWatcherLibrary
 {
     using Schemas;
 
-
     public class BeaconWatcher
     {
         public class UpdateLocationEventArgs : EventArgs
@@ -79,7 +78,11 @@ namespace BeaconWatcherLibrary
         /// </summary>
         public int PostInterval { get; set; } = 10 * 60;
 
+        public bool PostUserBeacons { get; set; } = true;
+
         private Dictionary<string, string> Locations { get; set; } = null;
+
+        private Dictionary<string, string> UserBeacons { get; set; } = null;
 
         private readonly (int skip, int take)[] uuid_index;
 
@@ -174,7 +177,14 @@ namespace BeaconWatcherLibrary
         /// </summary>
         /// <param name="apiHost">API Address</param>
         /// <returns></returns>
-        public async Task<bool> UpdateLocations(string apiHost)
+        public async Task UpdateBeacons(string apiHost)
+        {
+            await Task.WhenAll(
+                UpdateLocations(apiHost),
+                UpdateUserBeacons(apiHost));
+        }
+
+        private async Task UpdateLocations(string apiHost)
         {
             var reqest = WebRequest.Create($"{apiHost}/location");
             using var response = reqest.GetResponse().GetResponseStream();
@@ -186,14 +196,27 @@ namespace BeaconWatcherLibrary
                 .ToDictionary(
                     l => $"{l.UUID.ToUpper()}:{l.Major:X4}:{l.Minor:X4}",
                     l => l.Name);
+        }
 
-            return true;
+        private async Task UpdateUserBeacons(string apiHost)
+        {
+            var reqest = WebRequest.Create($"{apiHost}/beacon");
+            using var response = reqest.GetResponse().GetResponseStream();
+            using var reader = new StreamReader(response);
+            var json = await reader.ReadToEndAsync();
+            var beacons = JsonSerializer.Deserialize<Schemas.Beacon[]>(json);
+
+            UserBeacons = beacons
+                .ToDictionary(
+                    l => $"{l.UUID.ToUpper()}:{l.Major:X4}:{l.Minor:X4}",
+                    l => l.User);
         }
 
         public async Task Begin(CancellationToken? cancellationToken)
         {
             var founds = new List<Beacon>();
             Beacon posted = null;
+            var beacons = new List<string>();
 
             var watcher = new BluetoothLEAdvertisementWatcher();
             watcher.SignalStrengthFilter.SamplingInterval
@@ -220,19 +243,24 @@ namespace BeaconWatcherLibrary
                 var minor = ToUInt16(data.Skip(20).Take(2));
 
                 var key = $"{uuid}:{major:X4}:{minor:X4}";
-                if (Locations?.ContainsKey(key) != true)
-                    return;
-
-                founds.Add(new Beacon
+                if (Locations?.ContainsKey(key) == true)
                 {
-                    Timestamp = e.Timestamp,
-                    Location = Locations[key],
-                    UUID = uuid,
-                    Major = major,
-                    Minor = minor,
-                    RSSI = e.RawSignalStrengthInDBm
-                });
-                Debug.Print(founds.Last().ToString());
+                    founds.Add(new Beacon
+                    {
+                        Timestamp = e.Timestamp,
+                        Location = Locations[key],
+                        UUID = uuid,
+                        Major = major,
+                        Minor = minor,
+                        RSSI = e.RawSignalStrengthInDBm
+                    });
+                    Debug.Print(founds.Last().ToString());
+                }
+                if (PostUserBeacons && (UserBeacons?.ContainsKey(key) == true))
+                {
+                    beacons.Add(UserBeacons[key]);
+                    Debug.Print($"Beacon: {beacons.Last()}");
+                }
             };
 
             while (true)
@@ -247,37 +275,43 @@ namespace BeaconWatcherLibrary
                 watcher.Stop();
                 Debug.Print($"{DateTime.Now}: End");
 
-                await Post(founds.Max());
+                if (await Post(founds.Max(), beacons.Distinct()))
+                {
+                    beacons.Clear();
+                }
 
                 var wait = Cycle - (int)((DateTime.Now - begin).TotalSeconds);
                 if (wait > 0) await Task.Delay(wait * 1000);
             }
 
-            async Task Post(Beacon beacon)
+            async Task<bool> Post(Beacon beacon, IEnumerable<string> users)
             {
                 if (beacon is null)
-                    return;
+                    return false;
                 Debug.Print($"Nearest: {beacon}");
                 var diff = beacon.Timestamp - posted?.Timestamp;
 
                 if (beacon.Equals(posted) && diff != null &&
                         PostInterval > diff.Value.TotalSeconds)
-                    return;
+                    return false;
 
                 Debug.Print("Post!");
                 using var client = new InfluxClient(new Uri(InfluxHost));
-                var row = new DynamicInfluxRow();
-                row.Tags.Add("user", UserID);
-                row.Fields.Add("uuid", beacon.UUID);
-                row.Fields.Add("major", beacon.Major);
-                row.Fields.Add("minor", beacon.Minor);
+                DynamicInfluxRow Row(string user)
+                {
+                    var row = new DynamicInfluxRow();
+                    row.Tags.Add("user", user);
+                    row.Fields.Add("uuid", beacon.UUID);
+                    row.Fields.Add("major", beacon.Major);
+                    row.Fields.Add("minor", beacon.Minor);
+                    return row;
+                }
+                var rows = new List<DynamicInfluxRow> { Row(UserID) };
+                rows.AddRange(users.Select(user => Row(user)));
 
                 try
                 {
-                    await client.WriteAsync(
-                        Database,
-                        Measurement,
-                        new DynamicInfluxRow[] { row });
+                    await client.WriteAsync(Database, Measurement, rows);
                     posted = beacon;
 
                     OnUpdateLocation?.Invoke(
@@ -295,6 +329,8 @@ namespace BeaconWatcherLibrary
                 catch (InfluxException)
                 {
                 }
+
+                return true;
             }
         }
 
