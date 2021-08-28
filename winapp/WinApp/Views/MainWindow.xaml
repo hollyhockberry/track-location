@@ -1,0 +1,119 @@
+﻿<Window
+    x:Class="WinApp.Views.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:behaviors="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:l="http://schemas.livet-mvvm.net/2011/wpf"
+    xmlns:v="clr-namespace:WinApp.Views"
+    xmlns:i="clr-namespace:WinApp.Views.DesignInstance"
+    xmlns:conv="clr-namespace:WinApp.Views.Converters"
+    xmlns:vm="clr-namespace:WinApp.ViewModels"
+    Title="Location reporter"
+    ResizeMode="CanMinimize"
+    Width="400" SizeToContent="Height"
+    d:DataContext="{d:DesignInstance i:dMainWindowViewModel}" mc:Ignorable="d">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVisibilityConverter"/>
+        <conv:BooleanToNegativeBooleanConverter x:Key="NegativeBoolConverter"/>
+        <conv:NegativeBooleanToVisibilityConverter x:Key="NegativeBoolVisibilityConverter"/>
+        <conv:NullableBooleanToVisibilityConverter x:Key="NullableBoolToVisibilityConverter"/>
+        <conv:NullableNegativeBooleanToVisibilityConverter x:Key="NullableNegativeBoolToVisibilityConverter"/>
+        <conv:UserParametersToTupleConverter x:Key="UserParametersToTupleConverter"/>
+    </Window.Resources>
+    
+    <behaviors:Interaction.Triggers>
+        <!--  When ContentRendered event raised, Initialize method of ViewModel would be called.  -->
+        <behaviors:EventTrigger EventName="ContentRendered">
+            <l:LivetCallMethodAction MethodName="Initialize" MethodTarget="{Binding}" />
+        </behaviors:EventTrigger>
+
+        <!--  Dispose method is called, when Window closing.  -->
+        <behaviors:EventTrigger EventName="Closed">
+            <l:DataContextDisposeAction />
+        </behaviors:EventTrigger>
+
+        <!--  If you make user choose 'OK or Cancel' closing Window, then please use Window Close cancel Behavior.  -->
+
+    </behaviors:Interaction.Triggers>
+
+    <Grid Margin="20">
+        <StackPanel>
+            <StackPanel.Resources>
+                <Style TargetType="TextBlock" x:Key="Label">
+                    <Setter Property="Margin" Value="0 0 10 5"/>
+                    <Setter Property="Width" Value="70"/>
+                </Style>
+                <Style TargetType="RadioButton">
+                    <Setter Property="Margin" Value="10 0"/>
+                </Style>
+                <Style TargetType="Button">
+                    <Setter Property="Width" Value="160"/>
+                </Style>
+            </StackPanel.Resources>
+
+            <TextBlock Text="{Binding LastLocation, StringFormat=Last: {0}}" Margin="0 0 0 10"/>
+
+            <DockPanel>
+                <TextBlock Text="ID" Style="{StaticResource Label}"/>
+                <TextBox x:Name="UserID"
+                         Text="{Binding UserID, Mode=OneWay}"
+                         IsEnabled="{Binding SignedIn, Converter={StaticResource NegativeBoolConverter}}"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Name" Style="{StaticResource Label}"/>
+                <TextBox x:Name="UserName"
+                         Text="{Binding UserName, Mode=OneWay}"
+                         IsEnabled="{Binding SignedIn, Converter={StaticResource NegativeBoolConverter}}"/>
+            </DockPanel>
+            <DockPanel>
+                <TextBlock Text="Description" Style="{StaticResource Label}"/>
+                <TextBox x:Name="UserDescription"
+                         Text="{Binding UserDescription, Mode=OneWay}"
+                         IsEnabled="{Binding SignedIn, Converter={StaticResource NegativeBoolConverter}}"/>
+            </DockPanel>
+            <StackPanel Margin="0 5 0 0">
+                <StackPanel
+                    Visibility="{Binding SignedIn, Converter={StaticResource NegativeBoolVisibilityConverter}}"
+                    d:Visibility="Visible">
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 0 0 5">
+                        <RadioButton Content="Sign in" Name="Signin" IsChecked="True"/>
+                        <RadioButton Content="Sign up" Name="Signup"/>
+                    </StackPanel>
+                    <Button Content="Sign in"
+                        Command="{Binding SignInCommand}"
+                        CommandParameter="{Binding Text, ElementName=UserID}"
+                        Visibility="{Binding IsChecked, ElementName=Signin, Converter={StaticResource BoolVisibilityConverter}}"
+                        d:Visibility="Visible"/>
+                    <Button Content="Sign up"
+                        Command="{Binding SignUpCommand}"
+                        Visibility="{Binding IsChecked, ElementName=Signup, Converter={StaticResource BoolVisibilityConverter}}"
+                        d:Visibility="Visible">
+                        <Button.CommandParameter>
+                            <MultiBinding Converter="{StaticResource UserParametersToTupleConverter}">
+                                <Binding ElementName="UserID" Path="Text"/>
+                                <Binding ElementName="UserName" Path="Text"/>
+                                <Binding ElementName="UserDescription" Path="Text"/>
+                            </MultiBinding>
+                        </Button.CommandParameter>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Visibility="{Binding SignedIn, Converter={StaticResource BoolVisibilityConverter}}">
+                    <StackPanel Visibility="{Binding Running, Converter={StaticResource NullableNegativeBoolToVisibilityConverter}}">
+                        <Button Content="Sign out" Command="{Binding SignOutCommand}"/>
+                        <Button Content="Start" Command="{Binding StartCommand}" />
+                    </StackPanel>
+                    <Button Content="Stop"
+                        Command="{Binding StopCommand}"
+                        Visibility="{Binding Running, Converter={StaticResource NullableBoolToVisibilityConverter}}"
+                        d:Visibility="Visible"/>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+        
+    </Grid>
+</Window>

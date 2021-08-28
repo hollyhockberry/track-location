@@ -6,3 +6,5 @@ bin
 obj
 /winapp/ConsoleApp/Properties/launchSettings.json
 webapi/sample/settings.json
+/winapp/WinApp/Settings.json
+/winapp/WinApp/WinApp.csproj.user

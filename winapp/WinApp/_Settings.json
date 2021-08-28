@@ -1,0 +1,6 @@
+{
+  "InfluxHost": "http://localhost:8086/",
+  "Database": "track_location",
+  "Measurement": "sample",
+  "ApiHost": "http://localhost/api"
+}
