@@ -37,6 +37,7 @@ namespace ConsoleApp
                 InfluxHost = influxHost,
                 Database = database,
                 Measurement = measurement,
+                ApiHost = apiUrl,
             };
 
             watcher.OnUpdateLocation += (s, e) =>
@@ -44,11 +45,10 @@ namespace ConsoleApp
                 Console.WriteLine($"{e.Timestamp}: {e.Location} RSSI({e.RSSI})");
             };
 
-            if (!await watcher.SetUser(apiUrl, userID)) {
+            if (!await watcher.SetUser(userID)) {
                 throw new Exception();
             }
 
-            await watcher.UpdateBeacons(apiUrl);
             await watcher.Begin(null);
         }
     }

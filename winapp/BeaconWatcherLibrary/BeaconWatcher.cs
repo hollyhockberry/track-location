@@ -57,6 +57,11 @@ namespace BeaconWatcherLibrary
         /// </summary>
         public string Measurement { get; set; } = null;
 
+        /// <summary>
+        /// API host address
+        /// </summary>
+        public string ApiHost { get; set; } = "http://localhost/api";
+
         public string UserID { get; private set; }
 
         public string UserName { get; private set; }
@@ -98,7 +103,6 @@ namespace BeaconWatcherLibrary
         /// <summary>
         /// Create new user.
         /// </summary>
-        /// <param name="apiHost">API Address</param>
         /// <param name="id">User ID</param>
         /// <param name="name">User name</param>
         /// <param name="description">User description</param>
@@ -106,11 +110,11 @@ namespace BeaconWatcherLibrary
         /// <exception cref="WebException"></exception>
         /// <exception cref="UriFormatException"></exception>
         public async Task<bool> CreateUser(
-            string apiHost, string id, string name, string description)
+            string id, string name, string description)
         {
             try
             {
-                var reqest = (HttpWebRequest)WebRequest.Create($"{apiHost}/user/{id}");
+                var reqest = (HttpWebRequest)WebRequest.Create($"{ApiHost}/user/{id}");
                 reqest.ContentType = "application/json";
                 reqest.Method = "POST";
                 using (var writer = new StreamWriter(reqest.GetRequestStream()))
@@ -140,16 +144,15 @@ namespace BeaconWatcherLibrary
         /// <summary>
         /// Set the user ID by querying the database.
         /// </summary>
-        /// <param name="apiHost">API Address</param>
         /// <param name="id">User ID</param>
         /// <returns>success or failure</returns>
         /// <exception cref="WebException"></exception>
         /// <exception cref="UriFormatException"></exception>
-        public async Task<bool> SetUser(string apiHost, string id)
+        public async Task<bool> SetUser(string id)
         {
             try
             {
-                var reqest = WebRequest.Create($"{apiHost}/user/{id}");
+                var reqest = WebRequest.Create($"{ApiHost}/user/{id}");
                 using var response = reqest.GetResponse().GetResponseStream();
                 using var reader = new StreamReader(response);
                 var json = await reader.ReadToEndAsync();
@@ -172,12 +175,7 @@ namespace BeaconWatcherLibrary
 
         }
 
-        /// <summary>
-        /// Update the beacon list from the database.
-        /// </summary>
-        /// <param name="apiHost">API Address</param>
-        /// <returns></returns>
-        public async Task UpdateBeacons(string apiHost)
+        private async Task UpdateBeacons(string apiHost)
         {
             await Task.WhenAll(
                 UpdateLocations(apiHost),
@@ -263,12 +261,21 @@ namespace BeaconWatcherLibrary
                 }
             };
 
+            await UpdateBeacons(ApiHost);
+            var lastupdate = DateTime.Now;
+
             cancellationToken?.ThrowIfCancellationRequested();
 
             while (true)
             {
                 var begin = DateTime.Now;
                 Debug.Print($"{DateTime.Now}: Begin");
+
+                if ((DateTime.Now - lastupdate).TotalHours > 8)
+                {
+                    await UpdateBeacons(ApiHost);
+                    lastupdate = DateTime.Now;
+                }
 
                 founds.Clear();
                 watcher.Start();

@@ -87,6 +87,7 @@ namespace WinApp.Models
                 beaconWatcher.Cycle = Repository.Cycle.Value;
             if (Repository.PostInterval.HasValue)
                 beaconWatcher.PostInterval = Repository.PostInterval.Value;
+            beaconWatcher.ApiHost = Repository.ApiHost;
 
             if (!await Startup())
                 return;
@@ -117,7 +118,7 @@ namespace WinApp.Models
             if (string.IsNullOrEmpty(id))
                 return false;
 
-            if (!await beaconWatcher.SetUser(Repository.ApiHost, id))
+            if (!await beaconWatcher.SetUser(id))
                 return false;
 
             if (UserID != beaconWatcher.UserID)
@@ -140,7 +141,7 @@ namespace WinApp.Models
             if (string.IsNullOrEmpty(id))
                 return false;
 
-            if (!await beaconWatcher.CreateUser(Repository.ApiHost, id, name, description))
+            if (!await beaconWatcher.CreateUser(id, name, description))
                 return false;
 
             return await SignIn(id);
@@ -159,8 +160,6 @@ namespace WinApp.Models
         public async Task Start()
         {
             System.Diagnostics.Debug.Print("Start");
-
-            await beaconWatcher.UpdateBeacons(Repository.ApiHost);
 
             using var cts = new CancellationTokenSource();
             CancellationTokenSource = cts;
