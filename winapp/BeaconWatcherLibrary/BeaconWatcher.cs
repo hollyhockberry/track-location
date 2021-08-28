@@ -263,15 +263,16 @@ namespace BeaconWatcherLibrary
                 }
             };
 
+            cancellationToken?.ThrowIfCancellationRequested();
+
             while (true)
             {
-                cancellationToken?.ThrowIfCancellationRequested();
                 var begin = DateTime.Now;
                 Debug.Print($"{DateTime.Now}: Begin");
 
                 founds.Clear();
                 watcher.Start();
-                await Task.Delay(Sampling * 1000);
+                await Delay(Sampling * 1000);
                 watcher.Stop();
                 Debug.Print($"{DateTime.Now}: End");
 
@@ -281,7 +282,10 @@ namespace BeaconWatcherLibrary
                 }
 
                 var wait = Cycle - (int)((DateTime.Now - begin).TotalSeconds);
-                if (wait > 0) await Task.Delay(wait * 1000);
+                if (wait > 0) await Delay(wait * 1000);
+
+                Task Delay(int msec) => cancellationToken is null
+                    ? Task.Delay(msec) : Task.Delay(msec, cancellationToken.Value);
             }
 
             async Task<bool> Post(Beacon beacon, IEnumerable<string> users)
