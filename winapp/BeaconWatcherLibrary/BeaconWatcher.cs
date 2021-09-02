@@ -89,15 +89,8 @@ namespace BeaconWatcherLibrary
 
         private Dictionary<string, string> UserBeacons { get; set; } = null;
 
-        private readonly (int skip, int take)[] uuid_index;
-
         public BeaconWatcher()
         {
-            var chars = new int[] { 4, 2, 2, 2, 6 };
-            uuid_index = chars
-                .Select((v, i) => chars.Take(i).Sum())
-                .Zip(chars)
-                .ToArray();
         }
 
         /// <summary>
@@ -378,16 +371,14 @@ namespace BeaconWatcherLibrary
                    $"{Major:X4}, {Minor:X4}, {RSSI}";
         }
 
-        private string UUID(IEnumerable<byte> data)
-        {
-            var uuid = uuid_index
-                .Select(t => data.Skip(t.skip).Take(t.take))
-                .Select(d => d.Select(v => $"{v:X2}"))
-                .Select(d => string.Join(null, d));
-            return string.Join('-', uuid);
-        }
+        private static string UUID(IEnumerable<byte> data)
+            => string.Join(null, data.Select(v => $"{v:x2}"))
+                .Insert(8, "-")
+                .Insert(13, "-")
+                .Insert(18, "-")
+                .Insert(23, "-");
 
-        private int ToUInt16(IEnumerable<byte> data)
+        private static int ToUInt16(IEnumerable<byte> data)
             => BitConverter.ToUInt16(BitConverter.IsLittleEndian
                 ? data.Take(2).Reverse().ToArray()
                 : data.ToArray(), 0);
