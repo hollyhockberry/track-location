@@ -226,7 +226,7 @@ namespace BeaconWatcherLibrary
                     e.Advertisement.ManufacturerData.FirstOrDefault();
 
                 if (manufactureerdata?.CompanyId != 0x004C ||
-                    manufactureerdata?.Data.Length != 23)
+                    manufactureerdata?.Data.Length <= 0)
                     return;
 
                 // iBeacon frame (Manufacturer specific data)
@@ -236,6 +236,11 @@ namespace BeaconWatcherLibrary
                 using var reader = DataReader.FromBuffer(manufactureerdata.Data);
                 var data = new byte[manufactureerdata.Data.Length];
                 reader.ReadBytes(data);
+
+                // Judging the iBeacon header
+                if (data[0] != 0x02 || data[1] != 0x15)
+                    return;
+
                 var uuid = UUID(data.Skip(2).Take(16)).ToUpper();
                 var major = ToUInt16(data.Skip(18).Take(2));
                 var minor = ToUInt16(data.Skip(20).Take(2));
