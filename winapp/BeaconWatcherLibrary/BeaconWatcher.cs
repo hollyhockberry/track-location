@@ -122,15 +122,9 @@ namespace BeaconWatcherLibrary
                 using var response = (HttpWebResponse)reqest.GetResponse();
                 return response.StatusCode == HttpStatusCode.NoContent;
             }
-            catch (WebException e)
+            catch (WebException)
             {
-                if (e.Status == WebExceptionStatus.ProtocolError)
-                {
-                    var code = ((HttpWebResponse)e.Response).StatusCode;
-                    if (code == HttpStatusCode.BadRequest)
-                        return false;
-                }
-                throw;
+                return false;
             }
         }
 
@@ -153,26 +147,25 @@ namespace BeaconWatcherLibrary
                 UserID = id;
                 UserName = user.Name;
                 UserDescription = user.Description;
+                return true;
             }
-            catch (WebException e)
+            catch (WebException)
             {
-                if (e.Status == WebExceptionStatus.ProtocolError)
-                {
-                    var code = ((HttpWebResponse)e.Response).StatusCode;
-                    if (code == HttpStatusCode.NotFound)
-                        return false;
-                }
-                throw;
+                return false;
             }
-            return true;
-
         }
 
         private async Task UpdateBeacons(string apiHost)
         {
-            await Task.WhenAll(
-                UpdateLocations(apiHost),
-                UpdateUserBeacons(apiHost));
+            try
+            {
+                await Task.WhenAll(
+                    UpdateLocations(apiHost),
+                    UpdateUserBeacons(apiHost));
+            }
+            catch (WebException)
+            {
+            }
         }
 
         private async Task UpdateLocations(string apiHost)
